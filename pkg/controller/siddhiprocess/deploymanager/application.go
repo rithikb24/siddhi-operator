@@ -25,6 +25,7 @@ import (
 	artifact "github.com/siddhi-io/siddhi-operator/pkg/controller/siddhiprocess/artifact"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -57,6 +58,7 @@ type DeployManager struct {
 	Labels        map[string]string
 	Image         Image
 	SiddhiProcess *siddhiv1alpha2.SiddhiProcess
+	Owner         metav1.Object
 }
 
 // SPConfig contains the state persistence configs
@@ -219,7 +221,7 @@ func (d *DeployManager) Deploy() (operationResult controllerutil.OperationResult
 		imagePullSecrets,
 		volumes,
 		depStrategy,
-		d.SiddhiProcess,
+		d.Owner,
 	)
 	return
 }

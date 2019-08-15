@@ -237,3 +237,44 @@ func TestCreateOrUpdateDeployment(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestGetDeployment(t *testing.T) {
+	name := "sampleDeployment"
+	containerPorts := []corev1.ContainerPort{
+		corev1.ContainerPort{
+			Name:          "samplePort1",
+			ContainerPort: 8080,
+		},
+	}
+	selectors := map[string]string{
+		"app":     "sample",
+		"version": "0.1.0",
+	}
+	image := "siddhiio/siddhi-operator:0.2.0-m2"
+	_, err := kubeClient.CreateOrUpdateDeployment(
+		name,
+		namespace,
+		1,
+		selectors,
+		image,
+		"siddhirunner",
+		[]string{"sh"},
+		[]string{"-Dsiddhi-parser"},
+		containerPorts,
+		[]corev1.VolumeMount{},
+		[]corev1.EnvVar{},
+		corev1.SecurityContext{},
+		corev1.PullAlways,
+		[]corev1.LocalObjectReference{},
+		[]corev1.Volume{},
+		appsv1.DeploymentStrategy{},
+		sampleDeployment,
+	)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = kubeClient.GetDeployment(name, namespace)
+	if err != nil {
+		t.Error(err)
+	}
+}

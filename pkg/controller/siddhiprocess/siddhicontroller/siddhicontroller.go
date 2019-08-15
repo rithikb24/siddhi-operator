@@ -133,6 +133,7 @@ func (sc *SiddhiController) CreateArtifacts(applications []deploymanager.Applica
 				KubeClient:    sc.KubeClient,
 				Image:         sc.Image,
 				SiddhiProcess: sc.SiddhiProcess,
+				Owner:         sc.SiddhiProcess,
 			}
 			needDep++
 			operationResult, err := deployManeger.Deploy()

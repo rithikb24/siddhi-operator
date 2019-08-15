@@ -28,6 +28,7 @@ const (
 	ParserExtension   string = "-parser"
 	ParserHealth      string = ".svc.cluster.local:9090/health"
 	ParserContext     string = ".svc.cluster.local:9090/siddhi-parser/parse"
+	OperatorName      string = "siddhi-operator"
 	ParserPort        int32  = 9090
 	ParserReplicas    int32  = 1
 	ParserMinWait     int    = 3

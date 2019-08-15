@@ -81,6 +81,9 @@ type AppConfig struct {
 func (p *Parser) Parse() (applications []deploymanager.Application, err error) {
 	p.createRequest()
 	err = p.deploy()
+	if err != nil {
+		return
+	}
 	appConfigs, err := p.invokeParser(p.Request)
 	if err != nil {
 		return
@@ -125,10 +128,6 @@ func (p *Parser) Parse() (applications []deploymanager.Application, err error) {
 		}
 		applications = append(applications, application)
 	}
-	err = p.cleanParser()
-	if err != nil {
-		return
-	}
 	return applications, err
 }
 
@@ -140,35 +139,41 @@ func (p *Parser) deploy() (err error) {
 			Protocol:      corev1.ProtocolTCP,
 		},
 	}
+	parserName := getParserName(p.Image.Name)
 	application := deploymanager.Application{
-		Name:           p.Name + ParserExtension,
+		Name:           parserName,
 		ContainerPorts: containerPorts,
 		ServiceEnabled: true,
 		Replicas:       ParserReplicas,
 	}
 
+	operatorDeployment, err := p.KubeClient.GetDeployment(OperatorName, p.SiddhiProcess.Namespace)
+	if err != nil {
+		return
+	}
 	deployManeger := deploymanager.DeployManager{
 		Application:   application,
 		KubeClient:    p.KubeClient,
 		Image:         p.Image,
 		SiddhiProcess: p.SiddhiProcess,
+		Owner:         operatorDeployment,
 	}
 	_, err = deployManeger.Deploy()
 	if err != nil {
 		return
 	}
 	_, err = p.KubeClient.CreateOrUpdateService(
-		p.Name+ParserExtension,
+		parserName,
 		p.SiddhiProcess.Namespace,
 		containerPorts,
 		deployManeger.Labels,
-		p.SiddhiProcess,
+		operatorDeployment,
 	)
 	if err != nil {
 		return
 	}
 
-	url := ParserHTTP + p.Name + ParserExtension + "." + p.SiddhiProcess.Namespace + ParserHealth
+	url := ParserHTTP + getParserName(p.Image.Name) + "." + p.SiddhiProcess.Namespace + ParserHealth
 	p.Logger.Info("Waiting for parser", "deployment", p.Name)
 	err = waitForParser(url)
 	if err != nil {
@@ -181,7 +186,7 @@ func (p *Parser) deploy() (err error) {
 func (p *Parser) invokeParser(
 	request Request,
 ) (appConfig []AppConfig, err error) {
-	url := ParserHTTP + p.Name + ParserExtension + "." + p.SiddhiProcess.Namespace + ParserContext
+	url := ParserHTTP + getParserName(p.Image.Name) + "." + p.SiddhiProcess.Namespace + ParserContext
 	b, err := json.Marshal(request)
 	if err != nil {
 		return
@@ -280,5 +285,11 @@ func getAppName(app string) (appName string, err error) {
 		return
 	}
 	err = errors.New("Siddhi app name extraction error")
+	return
+}
+
+func getParserName(imageName string) (name string) {
+	re := regexp.MustCompile(`[^a-z0-9_]`)
+	name = re.ReplaceAllString(imageName, `$1-$2`)
 	return
 }

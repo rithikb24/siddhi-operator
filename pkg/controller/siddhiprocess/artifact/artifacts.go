@@ -438,6 +438,20 @@ func (k *KubeClient) CreateOrUpdateDeployment(
 	return
 }
 
+// GetDeployment retrieves a deployment object if it exists
+func (k *KubeClient) GetDeployment(
+	name string,
+	namespace string,
+) (deployment *appsv1.Deployment, err error) {
+	deployment = &appsv1.Deployment{}
+	err = k.Client.Get(
+		context.TODO(),
+		types.NamespacedName{Name: name, Namespace: namespace},
+		deployment,
+	)
+	return
+}
+
 // DeleteService deletes the service specified by the user
 func (k *KubeClient) DeleteService(
 	name string,
