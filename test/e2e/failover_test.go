@@ -216,8 +216,8 @@ func failoverPVCTest(t *testing.T, f *framework.Framework, ctx *framework.TestCt
 				Type: "nats",
 			},
 			PV: siddhiv1alpha2.PV{
-				AccessModes: []string{
-					"ReadWriteOnce",
+				AccessModes: []corev1.PersistentVolumeAccessMode{
+					corev1.ReadWriteOnce,
 				},
 				VolumeMode: "Filesystem",
 				Resources: siddhiv1alpha2.PVCResource{
