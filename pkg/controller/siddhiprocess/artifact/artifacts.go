@@ -344,6 +344,7 @@ func (k *KubeClient) CreateOrUpdateDeployment(
 	secrets []corev1.LocalObjectReference,
 	volumes []corev1.Volume,
 	strategy appsv1.DeploymentStrategy,
+	terminationGracePeriodSeconds int64,
 	owner metav1.Object,
 ) (operationResult controllerutil.OperationResult, err error) {
 	httpGetAction := corev1.HTTPGetAction{
@@ -407,8 +408,9 @@ func (k *KubeClient) CreateOrUpdateDeployment(
 							LivenessProbe:   &liveProbe,
 						},
 					},
-					ImagePullSecrets: secrets,
-					Volumes:          volumes,
+					ImagePullSecrets:              secrets,
+					Volumes:                       volumes,
+					TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
 				},
 			},
 			Strategy: strategy,
@@ -433,6 +435,7 @@ func (k *KubeClient) CreateOrUpdateDeployment(
 			ipp,
 			secrets,
 			volumes,
+			&terminationGracePeriodSeconds,
 		),
 	)
 	return
@@ -583,6 +586,7 @@ func DeploymentMutateFunc(
 	ipp corev1.PullPolicy,
 	secrets []corev1.LocalObjectReference,
 	volumes []corev1.Volume,
+	terminationGracePeriodSeconds *int64,
 ) controllerutil.MutateFn {
 	return func(obj runtime.Object) error {
 		deployment := obj.(*appsv1.Deployment)
@@ -600,8 +604,9 @@ func DeploymentMutateFunc(
 					ImagePullPolicy: ipp,
 				},
 			},
-			ImagePullSecrets: secrets,
-			Volumes:          volumes,
+			ImagePullSecrets:              secrets,
+			Volumes:                       volumes,
+			TerminationGracePeriodSeconds: terminationGracePeriodSeconds,
 		}
 		return nil
 	}

@@ -53,12 +53,15 @@ type Image struct {
 
 // DeployManager creates and manage the deployment
 type DeployManager struct {
-	Application   Application
-	KubeClient    artifact.KubeClient
-	Labels        map[string]string
-	Image         Image
-	SiddhiProcess *siddhiv1alpha2.SiddhiProcess
-	Owner         metav1.Object
+	Application                   Application
+	KubeClient                    artifact.KubeClient
+	Labels                        map[string]string
+	Image                         Image
+	SiddhiProcess                 *siddhiv1alpha2.SiddhiProcess
+	Owner                         metav1.Object
+	TerminationGracePeriodSeconds *int64
+	MaxUnavailable                *int32
+	MaxSurge                      *int32
 }
 
 // SPConfig contains the state persistence configs
@@ -163,13 +166,25 @@ func (d *DeployManager) Deploy() (operationResult controllerutil.OperationResult
 		configParameter = DepConfParameter + mountPath + deployYAMLCMName
 	}
 
+	maxUnavailableValue := MaxUnavailable
+	maxSurgeValue := MaxSurge
+	terminationGracePeriodSeconds := TerminationGracePeriodSeconds
+	if d.MaxUnavailable != nil {
+		maxUnavailableValue = *d.MaxUnavailable
+	}
+	if d.MaxSurge != nil {
+		maxSurgeValue = *d.MaxSurge
+	}
+	if d.TerminationGracePeriodSeconds != nil {
+		terminationGracePeriodSeconds = *d.TerminationGracePeriodSeconds
+	}
 	maxUnavailable := intstr.IntOrString{
 		Type:   artifact.Int,
-		IntVal: MaxUnavailable,
+		IntVal: maxUnavailableValue,
 	}
 	maxSurge := intstr.IntOrString{
 		Type:   artifact.Int,
-		IntVal: MaxSurge,
+		IntVal: maxSurgeValue,
 	}
 	rollingUpdate := appsv1.RollingUpdateDeployment{
 		MaxUnavailable: &maxUnavailable,
@@ -221,6 +236,7 @@ func (d *DeployManager) Deploy() (operationResult controllerutil.OperationResult
 		imagePullSecrets,
 		volumes,
 		depStrategy,
+		terminationGracePeriodSeconds,
 		d.Owner,
 	)
 	return

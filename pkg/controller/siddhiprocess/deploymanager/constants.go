@@ -20,22 +20,23 @@ package deploymanager
 
 // Constants for the DeployManager
 const (
-	OperatorName     string = "siddhi-operator"
-	OperatorVersion  string = "0.2.0-m2"
-	CRDName          string = "SiddhiProcess"
-	PVCExtension     string = "-pvc"
-	DepCMExtension   string = "-depyml"
-	SiddhiExtension  string = ".siddhi"
-	DepConfMountPath string = "tmp/configs/"
-	SiddhiFilesDir   string = "siddhi-files/"
-	DepConfParameter string = "-Dconfig="
-	AppConfParameter string = "-Dapps="
-	ParserParameter  string = "-Dsiddhi-parser "
-	ContainerName    string = "siddhi-runner-runtime"
-	Shell            string = "sh"
-	SiddhiBin        string = "bin"
-	MaxUnavailable   int32  = 0
-	MaxSurge         int32  = 2
+	OperatorName                  string = "siddhi-operator"
+	OperatorVersion               string = "0.2.0-m2"
+	CRDName                       string = "SiddhiProcess"
+	PVCExtension                  string = "-pvc"
+	DepCMExtension                string = "-depyml"
+	SiddhiExtension               string = ".siddhi"
+	DepConfMountPath              string = "tmp/configs/"
+	SiddhiFilesDir                string = "siddhi-files/"
+	DepConfParameter              string = "-Dconfig="
+	AppConfParameter              string = "-Dapps="
+	ParserParameter               string = "-Dsiddhi-parser "
+	ContainerName                 string = "siddhi-runner-runtime"
+	Shell                         string = "sh"
+	SiddhiBin                     string = "bin"
+	MaxUnavailable                int32  = 0
+	MaxSurge                      int32  = 2
+	TerminationGracePeriodSeconds int64  = 30
 )
 
 // Default directories in the docker image

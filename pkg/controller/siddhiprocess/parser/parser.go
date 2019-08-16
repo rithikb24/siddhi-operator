@@ -134,14 +134,13 @@ func (p *Parser) Parse() (applications []deploymanager.Application, err error) {
 func (p *Parser) deploy() (err error) {
 	containerPorts := []corev1.ContainerPort{
 		corev1.ContainerPort{
-			Name:          ParserName,
+			Name:          ParserPortName,
 			ContainerPort: ParserPort,
 			Protocol:      corev1.ProtocolTCP,
 		},
 	}
-	parserName := getParserName(p.Image.Name)
 	application := deploymanager.Application{
-		Name:           parserName,
+		Name:           ParserName,
 		ContainerPorts: containerPorts,
 		ServiceEnabled: true,
 		Replicas:       ParserReplicas,
@@ -151,19 +150,23 @@ func (p *Parser) deploy() (err error) {
 	if err != nil {
 		return
 	}
+	terminationGracePeriodSeconds := int64(0)
+	maxUnavailable := int32(1)
 	deployManeger := deploymanager.DeployManager{
-		Application:   application,
-		KubeClient:    p.KubeClient,
-		Image:         p.Image,
-		SiddhiProcess: p.SiddhiProcess,
-		Owner:         operatorDeployment,
+		Application:                   application,
+		KubeClient:                    p.KubeClient,
+		Image:                         p.Image,
+		SiddhiProcess:                 p.SiddhiProcess,
+		Owner:                         operatorDeployment,
+		TerminationGracePeriodSeconds: &terminationGracePeriodSeconds,
+		MaxUnavailable:                &maxUnavailable,
 	}
 	_, err = deployManeger.Deploy()
 	if err != nil {
 		return
 	}
 	_, err = p.KubeClient.CreateOrUpdateService(
-		parserName,
+		ParserName,
 		p.SiddhiProcess.Namespace,
 		containerPorts,
 		deployManeger.Labels,
@@ -173,7 +176,7 @@ func (p *Parser) deploy() (err error) {
 		return
 	}
 
-	url := ParserHTTP + getParserName(p.Image.Name) + "." + p.SiddhiProcess.Namespace + ParserHealth
+	url := ParserHTTP + ParserName + "." + p.SiddhiProcess.Namespace + ParserHealth
 	p.Logger.Info("Waiting for parser", "deployment", p.Name)
 	err = waitForParser(url)
 	if err != nil {
@@ -186,7 +189,7 @@ func (p *Parser) deploy() (err error) {
 func (p *Parser) invokeParser(
 	request Request,
 ) (appConfig []AppConfig, err error) {
-	url := ParserHTTP + getParserName(p.Image.Name) + "." + p.SiddhiProcess.Namespace + ParserContext
+	url := ParserHTTP + ParserName + "." + p.SiddhiProcess.Namespace + ParserContext
 	b, err := json.Marshal(request)
 	if err != nil {
 		return
@@ -257,6 +260,7 @@ func (p *Parser) cleanParser() (err error) {
 }
 
 func waitForParser(url string) (err error) {
+	time.Sleep(time.Duration(2) * time.Second)
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryWaitMin = time.Duration(ParserMinWait) * time.Second
 	retryClient.RetryWaitMax = time.Duration(ParserMaxWait) * time.Second

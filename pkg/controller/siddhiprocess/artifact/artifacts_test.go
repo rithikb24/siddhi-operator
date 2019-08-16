@@ -208,6 +208,7 @@ func TestCreateOrUpdateDeployment(t *testing.T) {
 		"app":     "sample",
 		"version": "0.1.0",
 	}
+	terminationGracePeriodSeconds := int64(0)
 	image := "siddhiio/siddhi-operator:0.2.0-m2"
 	_, err := kubeClient.CreateOrUpdateDeployment(
 		name,
@@ -226,6 +227,7 @@ func TestCreateOrUpdateDeployment(t *testing.T) {
 		[]corev1.LocalObjectReference{},
 		[]corev1.Volume{},
 		appsv1.DeploymentStrategy{},
+		terminationGracePeriodSeconds,
 		sampleDeployment,
 	)
 	if err != nil {
@@ -250,6 +252,7 @@ func TestGetDeployment(t *testing.T) {
 		"app":     "sample",
 		"version": "0.1.0",
 	}
+	terminationGracePeriodSeconds := int64(0)
 	image := "siddhiio/siddhi-operator:0.2.0-m2"
 	_, err := kubeClient.CreateOrUpdateDeployment(
 		name,
@@ -268,6 +271,7 @@ func TestGetDeployment(t *testing.T) {
 		[]corev1.LocalObjectReference{},
 		[]corev1.Volume{},
 		appsv1.DeploymentStrategy{},
+		terminationGracePeriodSeconds,
 		sampleDeployment,
 	)
 	if err != nil {
